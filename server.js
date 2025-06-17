@@ -3,9 +3,9 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const OpenAI = require('openai');
 
-// ✅ Correct: Configure OpenAI client
+// ✅ Configure OpenAI securely via environment variable
 const openai = new OpenAI({
-  apiKey: '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',
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 // ✅ Setup Express server
@@ -16,18 +16,18 @@ app.use(bodyParser.json());
 // ✅ POST endpoint to handle report generation
 app.post('/generate-report', async (req, res) => {
   const formData = req.body.data;
-const selectedLangs = req.body.languages || ["en"];
-const lang = selectedLangs[0];
-const targetLang = lang === "ar" ? "Arabic"
+  const selectedLangs = req.body.languages || ["en"];
+  const lang = selectedLangs[0];
+  const targetLang = lang === "ar" ? "Arabic"
                    : lang === "fr" ? "French"
                    : "English";
 
-console.log(`🔍 Generating report in ${targetLang}`);
+  console.log(`🔍 Generating report in ${targetLang}`);
 
-    const prompt = `
-You are a clinical autism assessment specialist. Write a **professional, highly detailed narrative report** based on the intake JSON provided.
+  const prompt = `
+You are a clinical autism assessment specialist. Write a professional, highly detailed narrative report based on the intake JSON provided.
 
-The report must be written in **${targetLang}**.
+The report must be written in ${targetLang}.
 
 Each section should be written in polished, natural language, clearly structured, and grouped under appropriate clinical headings...
 
@@ -170,16 +170,15 @@ JSON:
 ${JSON.stringify(formData, null, 2)}
 `;
 
-
   try {
     const completion = await openai.chat.completions.create({
-  model: "gpt-4-1106-preview",  // ← Use this!
-  messages: [
-    { role: "system", content: "You are a licensed clinical report writer." },
-    { role: "user", content: prompt }
-  ],
-  temperature: 0.3
-});
+      model: "gpt-4-1106-preview",
+      messages: [
+        { role: "system", content: "You are a licensed clinical report writer." },
+        { role: "user", content: prompt }
+      ],
+      temperature: 0.3
+    });
 
     const reportText = completion.choices[0].message.content;
     res.json({ report: reportText });
