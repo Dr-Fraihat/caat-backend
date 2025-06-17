@@ -190,6 +190,8 @@ ${JSON.stringify(formData, null, 2)}
 });
 
 // ✅ Start server
-app.listen(5000, () => {
-  console.log("✅ CAAT TOOL backend running at http://localhost:5000");
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`✅ CAAT TOOL backend running on port ${PORT}`);
 });
