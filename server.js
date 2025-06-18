@@ -191,11 +191,12 @@ ${JSON.stringify(formData, null, 2)}
   });
   res.status(500).send(error.message || "Unknown error occurred");
 }
-
+});
 
 // ✅ Start server
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`✅ CAAT TOOL backend running on port ${PORT}`);
+
 });
