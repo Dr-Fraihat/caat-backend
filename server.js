@@ -183,14 +183,10 @@ ${JSON.stringify(formData, null, 2)}
     const reportText = completion.choices[0].message.content;
     res.json({ report: reportText });
 
- } catch (error) {
-  console.error("❌ OpenAI Error:", {
-    message: error.message,
-    stack: error.stack,
-    response: error.response?.data,
-  });
-  res.status(500).send(error.message || "Unknown error occurred");
-}
+  } catch (error) {
+    console.error("OpenAI Error:", error.response?.data || error.message);
+    res.status(500).send(error.response?.data || error.message);
+  }
 });
 
 // ✅ Start server
@@ -198,5 +194,4 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`✅ CAAT TOOL backend running on port ${PORT}`);
-
 });
