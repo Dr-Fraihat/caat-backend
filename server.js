@@ -1,7 +1,8 @@
 require('dotenv').config(); // ⬅️ NEW LINE
 const express = require('express');
+const cors = require("cors");
+
 const bodyParser = require('body-parser');
-const cors = require('cors');
 const OpenAI = require('openai');
 
 // ✅ Correct: Configure OpenAI client
@@ -11,7 +12,8 @@ const openai = new OpenAI({
 
 // ✅ Setup Express server
 const app = express();
-app.use(cors());
+app.use(cors());  // ✅ Only once, right after app is created
+
 app.use(bodyParser.json());
 
 // ✅ POST endpoint to handle report generation
