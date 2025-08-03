@@ -1,4 +1,5 @@
 require('dotenv').config(); // ⬅️ NEW LINE
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY); // 🔥 add this here
 const express = require('express');
 const cors = require("cors");
 
@@ -204,6 +205,28 @@ ${JSON.stringify(formData, null, 2)}
 });
 
 // ✅ Start server
+app.post('/create-checkout-session', async (req, res) => {
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price: process.env.STRIPE_PRICE_ID,
+          quantity: 1,
+        },
+      ],
+      success_url: `${process.env.DOMAIN_URL}/success.html`,
+      cancel_url: `${process.env.DOMAIN_URL}/cancel.html`,
+    });
+
+    res.json({ url: session.url });
+  } catch (error) {
+    console.error("Stripe error:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.listen(5000, () => {
   console.log("✅ CAAT TOOL backend running at http://localhost:5000");
 });
