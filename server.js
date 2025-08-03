@@ -13,7 +13,11 @@ const openai = new OpenAI({
 
 // ✅ Setup Express server
 const app = express();
-app.use(cors());  // ✅ Only once, right after app is created
+app.use(cors({
+  origin: "https://caat.americanautismcouncil.org",
+  credentials: true
+}));
+
 
 app.use(bodyParser.json());
 
