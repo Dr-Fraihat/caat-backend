@@ -230,3 +230,7 @@ app.post('/create-checkout-session', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`✅ CAAT TOOL backend running on port ${PORT}`);
+});
