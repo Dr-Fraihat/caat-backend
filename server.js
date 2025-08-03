@@ -13,10 +13,22 @@ const openai = new OpenAI({
 
 // ✅ Setup Express server
 const app = express();
+const allowedOrigins = [
+  "https://caat.americanautismcouncil.org",
+  "http://localhost:5000"
+];
+
 app.use(cors({
-  origin: "https://caat.americanautismcouncil.org",
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true
 }));
+
 
 
 app.use(bodyParser.json());
