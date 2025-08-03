@@ -226,7 +226,3 @@ app.post('/create-checkout-session', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
-app.listen(5000, () => {
-  console.log("✅ CAAT TOOL backend running at http://localhost:5000");
-});
