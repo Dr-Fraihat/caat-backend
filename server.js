@@ -14,20 +14,50 @@ const openai = new OpenAI({
 // ✅ Setup Express server
 const app = express();
 const allowedOrigins = [
+  // local dev
+  "http://127.0.0.1:5500",
+  "http://localhost:5500",
+  "http://localhost:3000",
+  "http://localhost:5173",
+  // production frontends (adjust to your real domains)
   "https://caat.americanautismcouncil.org",
-  "http://localhost:5000"
+  "https://YOUR-VERCEL-SITE.vercel.app",
+  "https://YOUR-CUSTOM-DOMAIN.com"
 ];
 
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true
-}));
+
+// Parse JSON before routes (keep only one parser in the file)
+app.use(express.json({ limit: '1mb' }));  // or bodyParser.json()
+
+// CORS: allow localhost (any port) and your prod domains.
+// This responds on ALL routes and ALL methods (incl. OPTIONS and errors),
+// so preflight always gets the headers it needs.
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+
+  const ok =
+  !origin ||                                                      // allow curl/postman (no origin)
+  /^http:\/\/(127\.0\.0\.1|localhost):\d+$/.test(origin) ||       // any localhost port
+  /^https:\/\/caat\.americanautismcouncil\.org$/.test(origin) ||  // your prod domain
+  /^https:\/\/.*\.vercel\.app$/.test(origin) ||                   // any Vercel subdomain
+  /^https:\/\/YOUR-CUSTOM-DOMAIN\.com$/.test(origin);             // replace if you have one
+
+
+  if (ok && origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+  }
+
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);  // preflight OK
+  }
+  next();
+});
+
+
 
 
 
