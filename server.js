@@ -61,22 +61,31 @@ app.use((req, res, next) => {
 
 
 
-app.use(bodyParser.json());
+
 
 // ✅ POST endpoint to handle report generation
 app.post('/generate-report', async (req, res) => {
-  const formData = req.body.data;
-const selectedLangs = req.body.languages || ["en"];
-const lang = selectedLangs[0];
-const targetLang = lang === "ar" ? "Arabic"
-                   : lang === "fr" ? "French"
-                   : "English";
+  // --- Template & language selection + payload normalization ---
+const tQuery  = (req.query?.template || '').toLowerCase();
+const tHeader = (req.headers['x-report-type'] || '').toLowerCase();
+const tBody   = (req.body?.meta?.reportType || '').toLowerCase();
+const pick    = tQuery || tHeader || tBody || 'adir';
+const isOT    = (pick === 'ot');
 
-console.log(`🔍 Generating report in ${targetLang}`);
+// language (keep your behaviour, but tolerate single string or array)
+const selectedLangs = req.body.languages || req.body.langs || ['en'];
+const lang = Array.isArray(selectedLangs) ? selectedLangs[0] : selectedLangs;
+const targetLang = lang === 'ar' ? 'Arabic' : lang === 'fr' ? 'French' : 'English';
 
-    const prompt = `
+// normalize payloads: your ADIR flow sends { data, languages }, OT sends full payload
+const intakeData = req.body?.data || null;  // ADIR
+const otData     = isOT ? (req.body || null) : null;
+
+console.log('🧩 template =', pick, '| targetLang =', targetLang);
+
+
+   const promptADIR = `
 You are a clinical autism assessment specialist. Write a **professional, highly detailed narrative report** based on the intake JSON provided.
-
 The report must be written in **${targetLang}**.
 
 Each section should be written in polished, natural language, clearly structured, and grouped under appropriate clinical headings...
@@ -221,25 +230,46 @@ Communication was significantly delayed. He had limited verbal output and exhibi
 Sensory behaviors such as hand-flapping, toe-walking, and fixations on visual stimuli were documented. Fine motor skills appeared delayed. Overall mood was variable and frustration tolerance was low. Although constructive play was age-appropriate, imaginative and social play were limited and often repetitive. Attention to tasks was minimal, and transitions between activities were challenging
 
 ---
-
-
-
-Ensure that all content in the generated narrative report respects page layout constraints. Leave sufficient vertical spacing at the top and bottom of each page to prevent overlap with headers and footers. The report should include appropriate paragraph spacing and avoid crowding near the page edges. Content should not be rendered closer than 2cm (or 1 inch) to the top or bottom margin of any page.
-📦 Insert this intake JSON below for the AI to work with:
-JSON:
-${JSON.stringify(formData, null, 2)}
 `;
 
 
+
+
+const promptOT = `
+You are a senior pediatric **Occupational Therapist**. Write a **professional OT evaluation report** in **${targetLang}**, based on the JSON provided.
+Structure the report with these sections (omit sections that have no data):
+1) Client / Context (use client meta if present).
+2) Occupational Profile & Daily Routines (routines + top challenges).
+3) Sensory Processing: summarize otCore.Sensory index and each subdomain with severity (Typical / Mild / Moderate / Severe) and key behaviors.
+4) Motor — Fine & Visual Motor: use otCore["Motor_Fine"] + handwriting details (letter formation, spacing, speed, copying, keyboarding, accommodations).
+5) Motor — Gross & Praxis: use otCore["Motor_Gross"] (postural control, balance, praxis, strength/endurance).
+6) ADLs & Participation: use otCore.ADL plus routine notes (feeding, dressing, toileting, grooming, bathing, sleep, play, school participation).
+7) Executive Function & Self-Regulation: attention, initiation, sustained attention, flexibility, working memory, planning/organization, emotional & sensory regulation with examples from notes.
+8) Feeding & Oral-Motor: appetite, texture tolerance, chewing, flags (picky, gagging, choking risk, oral-seeking, ARFID) and notes.
+9) Risk & Safety: risks selected and mitigation.
+10) Clinical Observations: attention to task, transitions, imitation, bilateral use, 1-step/2-step following, plus notes.
+11) Strengths & Barriers: write as concise narrative paragraphs.
+12) Caregiver Priorities (COPM): include a short table with Problem, Importance, Performance, Satisfaction, Notes (if provided).
+13) Goals & Plan: convert GAS entries into goals with the −2…+2 scale and a short SMART paragraph per goal; include frequency, minutes/session, setting, supports, home program highlights.
+
+Guidelines:
+- Turn ratings and checkboxes into **clear sentences**; avoid raw numbers unless clinically meaningful (show OT Core indices once).
+- Be concise, objective, and clinically sound; avoid repetition; no placeholders.
+`;
+
+  const chosenPrompt = isOT ? promptOT : promptADIR;
+  const modelData    = isOT ? (otData || {}) : (intakeData || {});
+
   try {
     const completion = await openai.chat.completions.create({
-  model: "gpt-4-1106-preview",  // ← Use this!
+  model: "gpt-4-1106-preview",
   messages: [
-    { role: "system", content: "You are a licensed clinical report writer." },
-    { role: "user", content: prompt }
+    { role: "system", content: chosenPrompt },
+    { role: "user",   content: JSON.stringify(modelData) }
   ],
   temperature: 0.3
 });
+
 
     const reportText = completion.choices[0].message.content;
     res.json({ report: reportText });
