@@ -77,6 +77,7 @@ const intakeData = req.body?.data || null;  // ADIR
 const otData     = isOT ? (req.body || null) : null;
 
 console.log('🧩 template =', pick, '| targetLang =', targetLang);
+console.log('   selector:', { q: req.query?.template, h: req.headers['x-report-type'], b: req.body?.meta?.reportType });
 
 
    const promptADIR = `
@@ -267,7 +268,8 @@ Guidelines:
 
 
     const reportText = completion.choices[0].message.content;
-    res.json({ report: reportText });
+    res.json({ report: reportText, templateUsed: pick });
+
 
   } catch (error) {
     console.error("OpenAI Error:", error.response?.data || error.message);
