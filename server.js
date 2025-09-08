@@ -1,4 +1,6 @@
 require('dotenv').config(); // ⬅️ NEW LINE
+const MOCK_AI = process.env.MOCK_AI === '1';
+
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY); // 🔥 add this here
 const express = require('express');
 const cors = require("cors");
@@ -255,26 +257,45 @@ Guidelines:
 
   const chosenPrompt = isOT ? promptOT : promptADIR;
   const modelData    = isOT ? (otData || {}) : (intakeData || {});
+if (MOCK_AI) {
+  const mock = `[MOCK ${pick.toUpperCase()}] This is a placeholder narrative generated without calling OpenAI.`;
+  return res.json({ report: mock, templateUsed: pick });
+}
 
-  try {
-    const completion = await openai.chat.completions.create({
-  model: "gpt-4-1106-preview",
-  messages: [
-    { role: "system", content: chosenPrompt },
-    { role: "user",   content: JSON.stringify(modelData) }
-  ],
-  temperature: 0.3
-});
+try {
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4-1106-preview",          // (or your chosen model)
+    messages: [
+      { role: "system", content: chosenPrompt },
+      { role: "user",   content: JSON.stringify(modelData) }
+    ],
+    temperature: 0.3
+  });
 
+  const reportText = completion.choices?.[0]?.message?.content || '';
+  return res.json({ report: reportText, templateUsed: pick });
 
-    const reportText = completion.choices[0].message.content;
-    res.json({ report: reportText, templateUsed: pick });
+} catch (err) {
+  // Normalize status/message
+  const status = err?.status || err?.response?.status || 500;
+  const message = err?.message || (err?.response && (await err.response.text()).slice(0, 500)) || String(err);
 
-
-  } catch (error) {
-    console.error("OpenAI Error:", error.response?.data || error.message);
-    res.status(500).send(error.response?.data || error.message);
+  // If quota or rate-limit, return 429 to the browser
+  if (status === 429) {
+    return res.status(429).json({
+      error: "OpenAI quota/rate limit",
+      detail: message,
+      templateUsed: pick
+    });
   }
+
+  // Otherwise propagate the exact status
+  return res.status(status).json({
+    error: message,
+    templateUsed: pick
+  });
+}
+
 });
 
 // ✅ Start server
