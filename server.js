@@ -32,30 +32,25 @@ app.use(express.json({ limit: '1mb' }));  // or bodyParser.json()
 // CORS: allow localhost (any port) and your prod domains.
 // This responds on ALL routes and ALL methods (incl. OPTIONS and errors),
 // so preflight always gets the headers it needs.
+// CORS (mirror origin and requested headers for every route/method)
 app.use((req, res, next) => {
-  const origin = req.headers.origin;
+  const origin = req.headers.origin || '*';
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Vary', 'Origin');
 
-  const ok =
-  !origin ||                                                      // allow curl/postman (no origin)
-  /^http:\/\/(127\.0\.0\.1|localhost):\d+$/.test(origin) ||       // any localhost port
-  /^https:\/\/caat\.americanautismcouncil\.org$/.test(origin) ||  // your prod domain
-  /^https:\/\/.*\.vercel\.app$/.test(origin) ||                   // any Vercel subdomain
-  /^https:\/\/YOUR-CUSTOM-DOMAIN\.com$/.test(origin);             // replace if you have one
+  // allow GET/POST/OPTIONS by default
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
 
-
-  if (ok && origin) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Vary', 'Origin');
-  }
-
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  // reflect requested headers so preflight always passes
+  const reqHdrs = req.headers['access-control-request-headers'];
+  res.setHeader('Access-Control-Allow-Headers', reqHdrs || 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
-    return res.sendStatus(204);  // preflight OK
+    return res.sendStatus(204); // preflight OK
   }
   next();
 });
+
 
 
 
@@ -303,6 +298,8 @@ app.post('/create-checkout-session', async (req, res) => {
   }
 });
 const PORT = process.env.PORT || 5000;
+app.get('/health', (req, res) => res.send('OK'));
+
 app.listen(PORT, () => {
   console.log(`✅ CAAT TOOL backend running on port ${PORT}`);
 });
