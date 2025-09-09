@@ -55,9 +55,19 @@ app.use((req, res, next) => {
 
 
 
+// Explicit preflight for /generate-report (ensures ACAO on Render)
+app.options('/generate-report', (req, res) => {
+  const origin = req.headers.origin || '*';
+  const reqHdrs = req.headers['access-control-request-headers'];
 
+  res.set('Access-Control-Allow-Origin', origin);
+  res.set('Vary', 'Origin');
+  res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', reqHdrs || 'Content-Type, Authorization');
+  res.set('Access-Control-Max-Age', '86400'); // cache preflight 24h
 
-
+  res.status(204).send('');
+});
 
 
 // ✅ POST endpoint to handle report generation
