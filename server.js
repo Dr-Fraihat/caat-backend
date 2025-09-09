@@ -262,6 +262,11 @@ Goals & Plan:
 
 GUIDANCE
 - Demographic Summary: use clientInfo or fromIntakeSnapshot (name, DOB/age, gender, languages, diagnoses, education placement, report date) as narrative, not bullets.
+- If adirBackground is present, integrate its content concisely.
+- Use adirBackground.demographicSummary to enrich the Demographic Summary paragraph.
+- Use adirBackground.backgroundBirth, adirBackground.medicalDevelopmental, adirBackground.developmentalBehavioral, adirBackground.education, adirBackground.family, adirBackground.living, and adirBackground.primaryConcerns to enrich Background & Referral Context (paraphrase; do not duplicate verbatim).
+- Omit empty items; do not write "No data provided."
+
 - Background & Referral Context: caregiverInterview/profile/intake snapshot.
 - Sensory Profile: summarize otCore.Sensory (index/severity) + subdomain notes; interpret impact.
 - Fine/Visual-Motor: otCore["Motor_Fine"] + handwriting (letter formation, spacing, speed/endurance, copying, keyboarding, accommodations).
