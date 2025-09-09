@@ -47,6 +47,17 @@ app.use((req, res, next) => {
 
 
 
+// Catch-all preflight (covers any path that might be called)
+app.options('*', (req, res) => {
+  const origin  = req.headers.origin || '*';
+  const reqHdrs = req.headers['access-control-request-headers'];
+  res.set('Access-Control-Allow-Origin', origin);
+  res.set('Vary', 'Origin');
+  res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', reqHdrs || 'Content-Type, Authorization');
+  res.set('Access-Control-Max-Age', '86400'); // 24h
+  res.status(204).send('');
+});
 
 
 // Explicit preflight for /generate-report (ensures ACAO on Render)
@@ -350,6 +361,16 @@ app.post('/create-checkout-session', async (req, res) => {
 });
 const PORT = process.env.PORT || 5000;
 app.get('/health', (req, res) => res.send('OK'));
+// Error handler that still sets CORS so the browser can read the error
+app.use((err, req, res, next) => {
+  const origin = req.headers.origin || '*';
+  res.set('Access-Control-Allow-Origin', origin);
+  res.set('Vary', 'Origin');
+  res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  const status = err?.status || 500;
+  res.status(status).json({ error: String(err?.message || err) });
+});
 
 app.listen(PORT, () => {
   console.log(`✅ CAAT TOOL backend running on port ${PORT}`);
