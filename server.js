@@ -29,29 +29,23 @@ const allowedOrigins = [
 
 
 // Parse JSON before routes (keep only one parser in the file)
-app.use(express.json({ limit: '1mb' }));  // or bodyParser.json()
+app.use(express.json({ limit: '1mb' }));
 
-// CORS: allow localhost (any port) and your prod domains.
-// This responds on ALL routes and ALL methods (incl. OPTIONS and errors),
-// so preflight always gets the headers it needs.
-// CORS (mirror origin and requested headers for every route/method)
+// Mirror origin + requested headers for every route/method (incl. errors)
 app.use((req, res, next) => {
-  const origin = req.headers.origin || '*';
+  const origin  = req.headers.origin || '*';
+  const reqHdrs = req.headers['access-control-request-headers'];
+
   res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Vary', 'Origin');
-
-  // allow GET/POST/OPTIONS by default
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-
-  // reflect requested headers so preflight always passes
-  const reqHdrs = req.headers['access-control-request-headers'];
   res.setHeader('Access-Control-Allow-Headers', reqHdrs || 'Content-Type, Authorization');
 
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(204); // preflight OK
-  }
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
   next();
 });
+
+
 
 
 
