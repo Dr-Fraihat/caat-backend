@@ -244,29 +244,44 @@ Sensory behaviors such as hand-flapping, toe-walking, and fixations on visual st
 
 
 const promptOT = `
-You are a senior pediatric **Occupational Therapist**. Write a **professional, clinic-ready OT evaluation report** in **${targetLang}**, using the JSON provided. Match the professional tone and structure used in our ADIR reports (clear headings, formal language, objective statements, no placeholders).
+You are a senior pediatric Occupational Therapist. Write a professional, clinic-ready OT evaluation report in ${targetLang}, using the JSON provided. Match the tone and section structure used in our ADIR reports (clear headings, formal language, objective statements).
 
-Sections to include (omit any with no data):
-1) **Client Information & Demographics:** Use \`clientInfo\` or \`fromIntakeSnapshot\` if present (name, DOB/age, gender, languages, diagnoses, education placement, report date). Write as polished prose (not bullet lists).
-2) **Background & Referral Context:** If available from \`caregiverInterview\`, \`profile\`, or \`fromIntakeSnapshot\`, summarize family/household context, languages, school placement, and primary concerns leading to OT assessment.
-3) **Occupational Profile & Daily Routines:** Use \`profile\` (morning, school, after-school, bedtime; top routine challenges). Summarize functionally.
-4) **Sensory Processing:** Use \`otCore.Sensory\` (index + severity) and subdomain notes. Interpret functionally (seeking/avoiding/registration/sensitivity) and impact on participation.
-5) **Motor — Fine & Visual-Motor:** Use \`otCore["Motor_Fine"]\` plus \`handwriting\` (letter formation, spacing, speed/endurance, copying, keyboarding, accommodations).
-6) **Motor — Gross & Praxis:** Use \`otCore["Motor_Gross"]\` (postural control, balance, praxis, strength/endurance).
-7) **ADLs & Participation:** Use \`otCore.ADL\` and routine notes (feeding, dressing, toileting, grooming, bathing, sleep, play, school participation).
-8) **Executive Function & Self-Regulation:** Use \`executive\` (attention, initiation, sustained attention, flexibility, working memory, planning/organization, emotional & sensory regulation) with brief examples.
-9) **Feeding & Oral-Motor:** Use \`feeding\` (appetite, textures, chewing, flags—picky/gag/choke/oral-seeking/ARFID) with implications.
-10) **Risk & Safety:** Use \`safety\` (risks & mitigation).
-11) **Clinical Observations:** Use \`clinicalObservations\` (attention to task, transitions, imitation, bilateral use, following 1–2-step directions) and notes.
-12) **Strengths & Barriers:** Turn arrays into concise narrative paragraphs.
-13) **Caregiver Priorities (COPM):** If present, briefly summarize top problems and Importance/Performance/Satisfaction.
-14) **Goals & Plan:** Convert \`gas[]\` into SMART goals with the −2…+2 levels in prose; include frequency, minutes/session, setting, supports/home program highlights.
+IMPORTANT FORMAT RULES
+- Headings must be plain lines ending with a colon, e.g. "Demographic Summary:" (no Markdown, no asterisks, no quotes).
+- Only include sections that have substantive content. Do NOT write phrases like "No data provided" or empty filler; simply omit a section if there is no information.
 
-Style rules:
-- Use bold section headings; write in flowing paragraphs (no bullets) unless a short list improves clarity.
-- Convert numeric ratings/indices to clear sentences (show OT Core indices once; then use “mild / moderate / severe”).
-- Be concise, objective, and clinically sound; no placeholders or “N/A” lines.
+SECTIONS (use exactly these titles; omit any that have no content)
+Demographic Summary:
+Background & Referral Context:
+Occupational Profile & Daily Routines:
+Sensory Profile:
+Motor Skills (Fine / Visual-Motor):
+Motor Skills (Gross / Praxis):
+ADLs & Participation:
+Executive Function & Self-Regulation:
+Feeding & Oral-Motor:
+Risk & Safety:
+Clinical Observations:
+Strengths & Barriers:
+Caregiver Priorities (COPM):
+Goals & Plan:
+
+GUIDANCE
+- Demographic Summary: use clientInfo or fromIntakeSnapshot (name, DOB/age, gender, languages, diagnoses, education placement, report date) as narrative, not bullets.
+- Background & Referral Context: caregiverInterview/profile/intake snapshot.
+- Sensory Profile: summarize otCore.Sensory (index/severity) + subdomain notes; interpret impact.
+- Fine/Visual-Motor: otCore["Motor_Fine"] + handwriting (letter formation, spacing, speed/endurance, copying, keyboarding, accommodations).
+- Gross/Praxis: otCore["Motor_Gross"] (postural control, balance, praxis, strength/endurance).
+- ADLs & Participation: otCore.ADL + routine notes (feeding, dressing, toileting, grooming, bathing, sleep, play, school).
+- Executive/Self-Regulation: attention, initiation, sustained attention, flexibility, working memory, planning/organization, emotional/sensory regulation with brief examples.
+- Feeding & Oral-Motor: feeding (appetite, textures, chewing) + flags (picky/gag/choke/oral-seeking/ARFID) and implications.
+- Risk & Safety: risks & mitigation.
+- Clinical Observations: attention to task, transitions, imitation, bilateral use, following 1–2 step directions; summarize notes.
+- Strengths & Barriers: concise narrative paragraphs.
+- COPM: if present, summarize top problems and Importance/Performance/Satisfaction.
+- Goals & Plan: convert gas[] to SMART goals, embed −2…+2 levels in prose; include frequency, minutes/session, setting, supports/home program highlights.
 `;
+
 
 
   const chosenPrompt = isOT ? promptOT : promptADIR;
