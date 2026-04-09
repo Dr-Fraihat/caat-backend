@@ -302,18 +302,23 @@ if (MOCK_AI) {
 }
 
 try {
-  const completion = await openai.chat.completions.create({
-    model: "gpt-5.4-mini",          // (or your chosen model)
-    messages: [
-      { role: "system", content: chosenPrompt },
-      { role: "user",   content: JSON.stringify(modelData) }
-    ],
-    temperature: 0.3
-  });
+  const response = await openai.responses.create({
+  model: "gpt-5.4",
+  reasoning: { effort: "low" },
+  input: [
+    {
+      role: "system",
+      content: chosenPrompt
+    },
+    {
+      role: "user",
+      content: JSON.stringify(modelData)
+    }
+  ]
+});
 
-  const reportText = completion.choices?.[0]?.message?.content || '';
-  return res.json({ report: reportText, templateUsed: pick });
-
+const reportText = response.output_text || "";
+return res.json({ report: reportText, templateUsed: pick });
 } catch (err) {
   // Normalize status/message
   const status = err?.status || err?.response?.status || 500;
