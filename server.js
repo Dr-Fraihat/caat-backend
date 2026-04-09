@@ -303,7 +303,7 @@ if (MOCK_AI) {
 
 try {
   const completion = await openai.chat.completions.create({
-    model: "gpt-5-mini",          // (or your chosen model)
+    model: "gpt-4.1-mini",          // (or your chosen model)
     messages: [
       { role: "system", content: chosenPrompt },
       { role: "user",   content: JSON.stringify(modelData) }
