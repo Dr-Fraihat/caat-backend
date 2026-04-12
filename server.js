@@ -303,7 +303,7 @@ if (MOCK_AI) {
 
 try {
  const completion = await openai.chat.completions.create({
-  model: "gpt-4o",
+  model: "gpt-4-1106-preview",
   messages: [
     { role: "system", content: chosenPrompt },
     { role: "user", content: JSON.stringify(modelData) }
