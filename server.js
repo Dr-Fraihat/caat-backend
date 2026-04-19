@@ -302,38 +302,29 @@ if (MOCK_AI) {
 }
 
 try {
- const completion = await openai.chat.completions.create({
-  model: "gpt-3.5-turbo",
-  messages: [
-    { role: "system", content: chosenPrompt },
-    { role: "user", content: JSON.stringify(modelData) }
-  ],
-  temperature: 0.3
-});
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4o",
+    messages: [
+      { role: "system", content: chosenPrompt },
+      { role: "user", content: JSON.stringify(modelData) }
+    ],
+    temperature: 0.3
+  });
 
-const reportText = completion.choices?.[0]?.message?.content || '';
-return res.json({ report: reportText, templateUsed: pick });
+  const reportText = completion.choices?.[0]?.message?.content || '';
+  return res.json({ report: reportText, templateUsed: pick });
 } catch (err) {
-  // Normalize status/message
   const status = err?.status || err?.response?.status || 500;
-  const message = err?.message || (err?.response && (await err.response.text()).slice(0, 500)) || String(err);
+  const message =
+    err?.message ||
+    (err?.response && (await err.response.text()).slice(0, 500)) ||
+    String(err);
 
-  // If quota or rate-limit, return 429 to the browser
-  if (status === 429) {
-    return res.status(429).json({
-      error: "OpenAI quota/rate limit",
-      detail: message,
-      templateUsed: pick
-    });
-  }
-
-  // Otherwise propagate the exact status
   return res.status(status).json({
     error: message,
     templateUsed: pick
   });
 }
-
 });
 
 // ✅ Start server
