@@ -351,14 +351,7 @@ app.post('/create-checkout-session', async (req, res) => {
 });
 const PORT = process.env.PORT || 5000;
 app.get('/health', (req, res) => res.send('OK'));
-app.get('/list-models', async (req, res) => {
-  try {
-    const models = await openai.models.list();
-    res.json(models);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+
 // Error handler that still sets CORS so the browser can read the error
 app.use((err, req, res, next) => {
   const origin = req.headers.origin || '*';
